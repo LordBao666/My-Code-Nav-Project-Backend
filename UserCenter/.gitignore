@@ -1,5 +1,6 @@
 #my own setting
 out
+*.log
 
 HELP.md
 target/
