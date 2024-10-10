@@ -18,13 +18,13 @@
         <java.version>21</java.version>
     </properties>
     <dependencies>
+        <!--  web场景启动器      -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-
-
+        <!-- SpringBoot开发者工具,方便部署测试等,详见文档       -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -32,37 +32,53 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- mysql 驱动  -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
 
+        <!-- 用于支持 Spring Boot 应用中类型安全配置的工具       -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
 
+        <!-- Lombok       -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
+        <!--测试场景启动器        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
+        <!-- 安全场景启动器
+             本项目采用该依赖相关包来进行加密   -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
 
-
-       <!--  MP      -->
+       <!--  MP整合场景启动器     -->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
             <version>3.5.7</version>
+        </dependency>
+
+        <!-- commons-lang3 是对java.lang(包含Object,String,Integer,Math等常见类)的补充和扩展,
+        提供了诸如 StringUtils, ObjectUtils,ArrayUtils等辅助工具类       -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
         </dependency>
     </dependencies>
 
