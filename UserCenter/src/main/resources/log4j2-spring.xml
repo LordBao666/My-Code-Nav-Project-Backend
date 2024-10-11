@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Configuration xmlns="http://logging.apache.org/log4j/2.0/config">
+    <Properties>
+        <!-- 日志输出格式       -->
+        <Property name="pattern"
+                  value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} %M - %msg%n"/>
+    </Properties>
+
+    <Appenders>
+        <!-- 控制台Appender       -->
+        <Console name="consoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="${pattern}"/>
+        </Console>
+    </Appenders>
+
+    <!-- 可以配置N多个Logger，包括Root和自定义Logger-->
+    <Loggers>
+        <!-- 一个logger 可以引用多个Appender-->
+        <!-- Root记录器记录级别为info       -->
+        <Root level="info">
+            <AppenderRef ref="consoleAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>

@@ -1,7 +1,8 @@
 package com.lordbao.usercenter.service;
 
-import com.lordbao.usercenter.model.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lordbao.usercenter.model.User;
+import jakarta.servlet.http.HttpServletRequest;
 
 
 public interface UserService extends IService<User> {
@@ -15,4 +16,11 @@ public interface UserService extends IService<User> {
      */
     public Long registerUser(String userAccount, String password,String checkPassword);
 
+    /**
+     * @param userAccount 用户账户
+     * @param password    用户密码
+     * @param request 请求
+     * @return 登录成功返回脱敏后的账户信息, 登录失败返回null.
+     */
+    public User loginUser(String userAccount, String password, HttpServletRequest request);
 }
