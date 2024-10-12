@@ -31,12 +31,13 @@ public class UserController {
         String userAccount = requestUser.getUserAccount();
         String password = requestUser.getPassword();
         String checkPassword = requestUser.getCheckPassword();
+        String planetCode = requestUser.getPlanetCode();
 
-        if (StringUtils.isAnyBlank(userAccount, password, checkPassword)) {
+        if (StringUtils.isAnyBlank(userAccount, password, checkPassword,planetCode)) {
             return null;
         }
 
-        return userService.registerUser(userAccount, password, checkPassword);
+        return userService.registerUser(userAccount, password, checkPassword,planetCode);
 
     }
 
@@ -71,6 +72,11 @@ public class UserController {
             return false;
         }
         return userService.removeById(id);
+    }
+
+    @PostMapping("logout")
+    public Integer logoutUser(HttpServletRequest request){
+        return userService.logoutUser(request);
     }
 
     /**

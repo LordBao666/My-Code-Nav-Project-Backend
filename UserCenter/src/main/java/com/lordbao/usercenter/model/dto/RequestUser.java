@@ -16,4 +16,5 @@ public class RequestUser {
     private String userAccount;
     private String password;
     private String checkPassword;
+    private String planetCode;
 }

@@ -29,9 +29,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 
     @Override
-    public Long registerUser(String userAccount, String password, String checkPassword) {
+    public Long registerUser(String userAccount, String password, String checkPassword, String planetCode) {
         //检测是否为空
-        if (StringUtils.isAnyBlank(userAccount, password, checkPassword)) {
+        if (StringUtils.isAnyBlank(userAccount, password, checkPassword,planetCode)) {
             return -1L;
         }
 
@@ -41,7 +41,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         //检测长度是否符合要求
-        if (userAccount.length() < 4 || password.length() < 8) {
+        if (userAccount.length() < 4 || password.length() < 8 || planetCode.length()>10) {
             return -1L;
         }
 
@@ -61,12 +61,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return -1L;
         }
 
+        //检察星球编号是否已经存在
+        LambdaQueryWrapper<User> newWrapper = new LambdaQueryWrapper<>();
+        newWrapper.eq(User::getPlanetCode, planetCode);
+        if (this.count(newWrapper) > 0) {
+            return -1L;
+        }
+
         //对密码进行加密
         String encryptedPassword = passwordEncoder.encode(password);
 
         User user = new User();
         user.setUserAccount(userAccount);
         user.setUserPassword(encryptedPassword);
+        user.setPlanetCode(planetCode);
 
         boolean saveSuccess = save(user);
         if(saveSuccess){
@@ -125,6 +133,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return safetyUsers;
     }
 
+    @Override
+    public Integer logoutUser(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        session.removeAttribute(UserConstant.USER_LOGIN_STATE);
+        return 1;
+    }
+
     /**
      *
      * @param originUser 需要脱敏的用户
@@ -142,6 +157,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setUserStatus(originUser.getUserStatus());
         safetyUser.setCreateTime(originUser.getCreateTime());
         safetyUser.setUserRole(originUser.getUserRole());
+        safetyUser.setPlanetCode(originUser.getPlanetCode());
         return safetyUser;
     }
 }
