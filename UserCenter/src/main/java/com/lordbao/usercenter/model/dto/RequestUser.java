@@ -12,7 +12,7 @@ import lombok.Data;
  */
 @Data
 public class RequestUser {
-
+    private Long id;
     private String userAccount;
     private String password;
     private String checkPassword;

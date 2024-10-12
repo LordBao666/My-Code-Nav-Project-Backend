@@ -16,6 +16,7 @@ import java.util.Date;
 @Configuration
 public class DataBaseConfig {
 
+    /**MyBatis Plus 自动填充的相关组件*/
     @Bean
     public MetaObjectHandler metaObjectHandler(){
         return new MetaObjectHandler() {

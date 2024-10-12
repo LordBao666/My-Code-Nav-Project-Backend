@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.lordbao.usercenter.model.User;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.List;
+
 
 public interface UserService extends IService<User> {
 
@@ -23,4 +25,11 @@ public interface UserService extends IService<User> {
      * @return 登录成功返回脱敏后的账户信息, 登录失败返回null.
      */
     public User loginUser(String userAccount, String password, HttpServletRequest request);
+
+    /**
+     *
+     * @param username 用户名
+     * @return 根据用户名模糊查询得到的User List
+     */
+    public List<User> searchUsers(String username);
 }

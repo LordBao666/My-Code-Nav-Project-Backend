@@ -9,7 +9,9 @@ spring:
     url: jdbc:mysql://localhost:3306/code_nav_user_center
 server:
   port: 8080
-
+  servlet:
+    session:
+      timeout: 1d # 设置会话时间为1d, 默认为30min. 一般情况下,关闭服务器会话都会失效.
 #Mybatis Plus 配置
 mybatis-plus:
   global-config:

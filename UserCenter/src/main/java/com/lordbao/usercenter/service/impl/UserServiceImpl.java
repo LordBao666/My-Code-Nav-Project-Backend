@@ -2,6 +2,7 @@ package com.lordbao.usercenter.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lordbao.usercenter.constant.UserConstant;
 import com.lordbao.usercenter.mapper.UserMapper;
 import com.lordbao.usercenter.model.User;
 import com.lordbao.usercenter.service.UserService;
@@ -13,6 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Service
 @Slf4j
@@ -22,7 +26,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    private static final String USER_LOGIN_STATE="userLoginState";
+
 
     @Override
     public Long registerUser(String userAccount, String password, String checkPassword) {
@@ -102,23 +106,42 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         //用户脱敏
-        User safetyUser = new User();
-        safetyUser.setId(user.getId());
-        safetyUser.setUsername(user.getUsername());
-        safetyUser.setUserAccount(user.getUserAccount());
-        safetyUser.setAvatarUrl(user.getAvatarUrl());
-        safetyUser.setGender(user.getGender());
-        safetyUser.setPhone(user.getPhone());
-        safetyUser.setEmail(user.getEmail());
-        safetyUser.setUserStatus(user.getUserStatus());
-        safetyUser.setCreateTime(user.getCreateTime());
-
-
+        User safetyUser = getSafeUser(user);
         HttpSession session = request.getSession();
         //记录用户的登录状态
-        session.setAttribute(USER_LOGIN_STATE,safetyUser);
+        session.setAttribute(UserConstant.USER_LOGIN_STATE,safetyUser);
+        return safetyUser;
+    }
 
+    @Override
+    public List<User> searchUsers(String username) {
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(StringUtils.isNotBlank(username),User::getUsername,username);
+        List<User> list = this.list(wrapper);
+        List<User> safetyUsers = new ArrayList<>();
+        for(User user:list){
+            safetyUsers.add(getSafeUser(user));
+        }
+        return safetyUsers;
+    }
 
+    /**
+     *
+     * @param originUser 需要脱敏的用户
+     * @return 返回脱敏后的用户
+     */
+    private User getSafeUser(User originUser){
+        User safetyUser = new User();
+        safetyUser.setId(originUser.getId());
+        safetyUser.setUsername(originUser.getUsername());
+        safetyUser.setUserAccount(originUser.getUserAccount());
+        safetyUser.setAvatarUrl(originUser.getAvatarUrl());
+        safetyUser.setGender(originUser.getGender());
+        safetyUser.setPhone(originUser.getPhone());
+        safetyUser.setEmail(originUser.getEmail());
+        safetyUser.setUserStatus(originUser.getUserStatus());
+        safetyUser.setCreateTime(originUser.getCreateTime());
+        safetyUser.setUserRole(originUser.getUserRole());
         return safetyUser;
     }
 }
