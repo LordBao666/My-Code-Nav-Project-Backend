@@ -1,5 +1,4 @@
 package com.lordbao.usercenter;
-import java.util.Date;
 
 import com.lordbao.usercenter.mapper.UserMapper;
 import com.lordbao.usercenter.model.User;

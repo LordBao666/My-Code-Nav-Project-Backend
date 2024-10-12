@@ -2,7 +2,10 @@ package com.lordbao.usercenter.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lordbao.usercenter.common.BaseResponse;
+import com.lordbao.usercenter.common.ResponseUtils;
 import com.lordbao.usercenter.constant.UserConstant;
+import com.lordbao.usercenter.exception.BusinessException;
 import com.lordbao.usercenter.mapper.UserMapper;
 import com.lordbao.usercenter.model.User;
 import com.lordbao.usercenter.service.UserService;
@@ -18,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+import static com.lordbao.usercenter.common.CommonResponse.*;
+
 @Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
@@ -26,23 +31,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-
-
     @Override
     public Long registerUser(String userAccount, String password, String checkPassword, String planetCode) {
         //检测是否为空
-        if (StringUtils.isAnyBlank(userAccount, password, checkPassword,planetCode)) {
-            return -1L;
+        if (StringUtils.isAnyBlank(userAccount, password, checkPassword, planetCode)) {
+            throw new BusinessException(NULL_ERROR.getCode(), NULL_ERROR.getMessage());
         }
 
         //检查密码和二次密码是否匹配
         if (!password.equals(checkPassword)) {
-            return -1L;
+            throw new BusinessException(PARAM_ERROR.getCode(), PARAM_ERROR.getMessage(), "密码和二次密码不匹配");
         }
 
         //检测长度是否符合要求
-        if (userAccount.length() < 4 || password.length() < 8 || planetCode.length()>10) {
-            return -1L;
+        if (userAccount.length() < 4 || password.length() < 8 || planetCode.length() > 10) {
+            throw new BusinessException(PARAM_ERROR.getCode(), PARAM_ERROR.getMessage(), "参数长度有误");
         }
 
         /* 要求账户只能含字母数字下划线
@@ -51,21 +54,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         */
         String userPattern = "^[a-zA-Z0-9_]+$";
         if (!userAccount.matches(userPattern)) {
-            return -1L;
+            throw new BusinessException(PARAM_ERROR.getCode(), PARAM_ERROR.getMessage(), "账户名不符合命名规则");
         }
 
         //检测userAccount是否已经注册
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getUserAccount, userAccount);
         if (this.count(wrapper) > 0) {
-            return -1L;
+            throw new BusinessException(USER_ACCOUNT_TAKEN.getCode(), USER_ACCOUNT_TAKEN.getMessage(), userAccount + "已经被注册");
         }
 
         //检察星球编号是否已经存在
         LambdaQueryWrapper<User> newWrapper = new LambdaQueryWrapper<>();
         newWrapper.eq(User::getPlanetCode, planetCode);
         if (this.count(newWrapper) > 0) {
-            return -1L;
+            throw new BusinessException(PLANET_CODE_TAKEN.getCode(), PLANET_CODE_TAKEN.getMessage(), planetCode + "已经被注册");
         }
 
         //对密码进行加密
@@ -77,22 +80,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         user.setPlanetCode(planetCode);
 
         boolean saveSuccess = save(user);
-        if(saveSuccess){
+        if (saveSuccess) {
             return user.getId();
+        } else {
+            throw new BusinessException(ERROR.getCode(), ERROR.getMessage(), "用户注册失败,原因未知");
         }
-        return -1L;
+
     }
 
     @Override
     public User loginUser(String userAccount, String password, HttpServletRequest request) {
         //检测是否为空
         if (StringUtils.isAnyBlank(userAccount, password)) {
-            return null;
+            throw new BusinessException(NULL_ERROR.getCode(), NULL_ERROR.getMessage());
         }
 
         //检测长度是否符合要求
         if (userAccount.length() < 4 || password.length() < 8) {
-            return null;
+            throw new BusinessException(PARAM_ERROR.getCode(), PARAM_ERROR.getMessage(), "参数长度有误");
         }
 
         /* 要求账户只能含字母数字下划线
@@ -101,51 +106,48 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         */
         String userPattern = "^[a-zA-Z0-9_]+$";
         if (!userAccount.matches(userPattern)) {
-            return null;
+            throw new BusinessException(PARAM_ERROR.getCode(), PARAM_ERROR.getMessage(), "账户名不符合命名规则");
         }
 
         //查询用户是否存在
-        LambdaQueryWrapper <User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUserAccount,userAccount);
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUserAccount, userAccount);
         User user = this.getOne(wrapper);
-        if(user==null || !passwordEncoder.matches(password,user.getUserPassword())){
-            log.info("Username can  NOT match password!");
-            return null;
+        if (user == null || !passwordEncoder.matches(password, user.getUserPassword())) {
+            throw new BusinessException(PARAM_ERROR.getCode(), PARAM_ERROR.getMessage(), "用户名和密码不匹配");
         }
 
         //用户脱敏
         User safetyUser = getSafeUser(user);
         HttpSession session = request.getSession();
         //记录用户的登录状态
-        session.setAttribute(UserConstant.USER_LOGIN_STATE,safetyUser);
+        session.setAttribute(UserConstant.USER_LOGIN_STATE, safetyUser);
         return safetyUser;
     }
 
     @Override
     public List<User> searchUsers(String username) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StringUtils.isNotBlank(username),User::getUsername,username);
+        wrapper.like(StringUtils.isNotBlank(username), User::getUsername, username);
         List<User> list = this.list(wrapper);
         List<User> safetyUsers = new ArrayList<>();
-        for(User user:list){
+        for (User user : list) {
             safetyUsers.add(getSafeUser(user));
         }
         return safetyUsers;
     }
 
     @Override
-    public Integer logoutUser(HttpServletRequest request) {
+    public void logoutUser(HttpServletRequest request) {
         HttpSession session = request.getSession();
         session.removeAttribute(UserConstant.USER_LOGIN_STATE);
-        return 1;
     }
 
     /**
-     *
      * @param originUser 需要脱敏的用户
      * @return 返回脱敏后的用户
      */
-    private User getSafeUser(User originUser){
+    private User getSafeUser(User originUser) {
         User safetyUser = new User();
         safetyUser.setId(originUser.getId());
         safetyUser.setUsername(originUser.getUsername());
