@@ -1,9 +1,13 @@
 package com.lordbao.usercenter.service.impl;
 
+import com.lordbao.usercenter.model.User;
 import com.lordbao.usercenter.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -81,5 +85,15 @@ class UserServiceImplTest {
         planetCode = "666";
         result = userService.registerUser(userAccount, userPassword, checkPassword, planetCode);
         assertEquals(-1, result);
+    }
+
+    @Test
+    void searchUsersByTag(){
+
+        List<String> tags = List.of("C++", "java");
+        List<User> users = userService.searchUserByTags(tags);
+        for (User user : users) {
+            System.out.println(user);
+        }
     }
 }

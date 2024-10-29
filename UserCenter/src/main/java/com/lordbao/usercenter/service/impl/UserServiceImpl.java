@@ -2,7 +2,10 @@ package com.lordbao.usercenter.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.lordbao.usercenter.common.BaseResponse;
+import com.lordbao.usercenter.common.CommonResponse;
 import com.lordbao.usercenter.common.ResponseUtils;
 import com.lordbao.usercenter.constant.UserConstant;
 import com.lordbao.usercenter.exception.BusinessException;
@@ -16,7 +19,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -143,6 +148,62 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         session.removeAttribute(UserConstant.USER_LOGIN_STATE);
     }
 
+//    //方式1 利用数据库完成通过tags查询用户
+//    @Override
+//    public List<User> searchUserByTags(List<String> tags) {
+//        if(CollectionUtils.isEmpty(tags)){
+//            throw new BusinessException(PARAM_ERROR.getCode(),PARAM_ERROR.getMessage(),"tags不能为空");
+//        }
+//        LambdaQueryWrapper<User> wrapper= new LambdaQueryWrapper<>();
+//        for(String tag : tags){
+//            wrapper.like(User::getTags,tag);
+//        }
+//        List<User> userList = this.list(wrapper);
+//        ArrayList<User> safeUserList = new ArrayList<>();
+//        for(User user : userList){
+//            safeUserList.add(getSafeUser(user));
+//        }
+//
+//        return safeUserList;
+//    }
+
+    //方式2 先从数据库拿到所有数据，然后通过代码层面同过tags查询用户
+    @Override
+    public List<User> searchUserByTags(List<String> tags) {
+        if(CollectionUtils.isEmpty(tags)){
+            throw new BusinessException(PARAM_ERROR.getCode(),PARAM_ERROR.getMessage(),"tags不能为空");
+        }
+
+        //获得全部用户
+        List<User> userList = this.list();
+
+
+        //gson 对 json string 进行反序列化
+        Gson gson  = new Gson();
+        Type type = new TypeToken<List<String>>() {
+        }.getType();
+
+        ArrayList<User> safeUserList = new ArrayList<>();
+        for(User user : userList){
+            boolean isConditionMeet =true;
+            List<String> userTags = gson.fromJson(user.getTags(), type);
+            if(userTags==null){
+                continue;
+            }
+            for(String tag : tags){
+                if(!userTags.contains(tag)){
+                    isConditionMeet=false;
+                    break;
+                }
+            }
+            if(isConditionMeet){
+                safeUserList.add(getSafeUser(user));
+            }
+        }
+
+        return safeUserList;
+    }
+
     /**
      * @param originUser 需要脱敏的用户
      * @return 返回脱敏后的用户
@@ -160,6 +221,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setCreateTime(originUser.getCreateTime());
         safetyUser.setUserRole(originUser.getUserRole());
         safetyUser.setPlanetCode(originUser.getPlanetCode());
+        safetyUser.setTags(originUser.getTags());
         return safetyUser;
     }
 }

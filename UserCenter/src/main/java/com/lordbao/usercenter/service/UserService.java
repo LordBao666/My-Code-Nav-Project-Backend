@@ -36,4 +36,11 @@ public interface UserService extends IService<User> {
      * 注销用户
      */
     public void logoutUser(HttpServletRequest request);
+
+    /**
+     *
+     *根据标签检索用户。此处会返回所有标签均符合的用户。
+     * 注意tags不能为空，否则抛出异常。
+     */
+    public List<User> searchUserByTags(List<String> tags);
 }
